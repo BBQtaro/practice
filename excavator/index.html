@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>油圧ショベルの仕組み</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap">
+<style>
+/* Layout: one drafting card holds the live machine; two cut-away instruments sit under it; the explanation reads as a short numbered sequence. */
+:root {
+  --bg: #e9ecec; --card: #f6f7f6; --ink: #1d2225; --ink2: #586166; --line: #c6ccce; --faint: #dde1e1;
+  --body: #e2b13b; --body-hi: #efc75e; --body-lo: #b88c25; --body-dk: #7d5e16;
+  --steel: #7f888d; --steel-dk: #4b5357; --rod: #d7dde0; --glass: #c9d6dc;
+  --hp: #d6451c; --lp: #2d6cae; --oil: #9a8b70; --oil-hold: #b9773a;
+  --ground: #d5d0c4; --ground-dk: #b9b2a2; --soil: #8a6c4b;
+  --f-display: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121517; --card: #1a1e21; --ink: #e4e8e9; --ink2: #98a2a7; --line: #333a3f; --faint: #252a2e;
+  --body: #d2a238; --body-hi: #e0b955; --body-lo: #a27b22; --body-dk: #6a5014;
+  --steel: #6c767c; --steel-dk: #3e454a; --rod: #b8c1c6; --glass: #3d4a51;
+  --hp: #ff6b3d; --lp: #5b9ce2; --oil: #6e6552; --oil-hold: #a8692f;
+  --ground: #2a2724; --ground-dk: #3a352f; --soil: #6e5539; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121517; --card: #1a1e21; --ink: #e4e8e9; --ink2: #98a2a7; --line: #333a3f; --faint: #252a2e;
+  --body: #d2a238; --body-hi: #e0b955; --body-lo: #a27b22; --body-dk: #6a5014;
+  --steel: #6c767c; --steel-dk: #3e454a; --rod: #b8c1c6; --glass: #3d4a51;
+  --hp: #ff6b3d; --lp: #5b9ce2; --oil: #6e6552; --oil-hold: #a8692f;
+  --ground: #2a2724; --ground-dk: #3a352f; --soil: #6e5539; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.75;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px }
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 28px }
+header { display: grid; gap: 6px }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; color: var(--ink2); text-transform: uppercase }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(26px, 4.4vw, 40px); line-height: 1.25; margin: 0; text-wrap: balance }
+.lead { margin: 0; max-width: 40em; color: var(--ink2) }
+h2 { font-family: var(--f-display); font-weight: 700; font-size: 21px; margin: 0; text-wrap: balance }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.card-top, .card-bot { display: flex; justify-content: space-between; gap: 12px; padding: 10px 16px; font-size: 12.5px; color: var(--ink2); flex-wrap: wrap }
+.card-top { border-bottom: 1px solid var(--faint) }
+.card-bot { border-top: 1px solid var(--faint); align-items: baseline }
+.fig { font-family: var(--f-mono); letter-spacing: .06em }
+.ttl { font-family: var(--f-display); font-weight: 500; color: var(--ink) }
+.readout { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ink); font-size: 12.5px }
+.readout b { color: var(--hp); font-weight: 600 }
+.stage { overflow-x: auto }
+.stage svg { display: block; width: 100%; min-width: 620px; height: auto; touch-action: none }
+
+/* drawing */
+.ln { fill: none; stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round }
+.thin { fill: none; stroke: var(--ink); stroke-width: .8; stroke-linecap: round }
+.faintln { fill: none; stroke: var(--line); stroke-width: 1 }
+.body { fill: var(--body); stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round }
+.body-hi { fill: var(--body-hi); stroke: none }
+.body-lo { fill: var(--body-lo); stroke: none }
+.body-dk { fill: var(--body-dk); stroke: var(--ink); stroke-width: 1.1; stroke-linejoin: round }
+.steel { fill: var(--steel); stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round }
+.steel-dk { fill: var(--steel-dk); stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round }
+.rod { fill: var(--rod); stroke: var(--ink); stroke-width: 1.1 }
+.glass { fill: var(--glass); stroke: var(--ink); stroke-width: 1.1 }
+.paper { fill: var(--card); stroke: var(--ink); stroke-width: 1.1 }
+.dot { fill: var(--ink) }
+.ground { fill: var(--ground) }
+.soil { fill: var(--soil); stroke: var(--ink); stroke-width: .9 }
+.hatch { stroke: var(--ground-dk); stroke-width: 1 }
+.hose { fill: none; stroke-linecap: round; stroke-linejoin: round }
+.hose-o { stroke: var(--ink); stroke-width: 5.2 }
+.hose-i { stroke-width: 3; stroke: var(--oil) }
+.flow { fill: none; stroke-width: 3; stroke-dasharray: 7 9; stroke-linecap: round; stroke-linejoin: round }
+.tag { font-family: var(--f-mono); font-size: 11px; fill: var(--ink2) }
+.tag-b { font-family: var(--f-mono); font-size: 12px; fill: var(--ink); font-weight: 600 }
+.tagj { font-family: var(--f-body); font-size: 12px; fill: var(--ink2) }
+
+/* levers */
+.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 14px 16px 16px; border-top: 1px solid var(--faint) }
+.lever { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--faint); border-radius: 8px; min-width: 0 }
+.lever.on { border-color: var(--ink2) }
+.lever-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px }
+.lever-h strong { font-family: var(--f-display); font-weight: 700; font-size: 15px }
+.lever-h kbd { font-family: var(--f-mono); font-size: 11px; color: var(--ink2) }
+.ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink2) }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; margin: 0; cursor: grab }
+input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--lp), var(--faint) 46%, var(--faint) 54%, var(--hp)) }
+input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--lp), var(--faint) 46%, var(--faint) 54%, var(--hp)) }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; margin-top: -8px; background: var(--ink); border: 3px solid var(--card); box-shadow: 0 0 0 1px var(--ink) }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--ink); border: 3px solid var(--card); box-shadow: 0 0 0 1px var(--ink) }
+input[type=range]:focus-visible { outline: 2px solid var(--lp); outline-offset: 3px; border-radius: 4px }
+.tour { font-family: var(--f-body); font-size: 12.5px; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; cursor: pointer }
+.tour:focus-visible { outline: 2px solid var(--lp); outline-offset: 2px }
+.tour[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink) }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--ink2); padding: 0 2px }
+.legend span { display: inline-flex; align-items: center; gap: 7px }
+.sw { width: 18px; height: 5px; border-radius: 3px; display: inline-block }
+
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px }
+.pair .card svg { display: block; width: 100%; height: auto }
+.pair p { margin: 0; padding: 0 16px 14px; font-size: 13.5px; color: var(--ink2) }
+
+.steps { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; counter-reset: s }
+.steps li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; counter-increment: s }
+.steps li::before { content: counter(s); font-family: var(--f-mono); font-weight: 600; font-size: 13px; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--ink); display: grid; place-items: center; margin-top: 2px }
+.steps strong { font-family: var(--f-display); font-weight: 700 }
+.steps p { margin: 2px 0 0; color: var(--ink2); max-width: 44em }
+.formula { font-family: var(--f-mono); font-variant-numeric: tabular-nums; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; font-size: 13.5px; line-height: 1.9; overflow-x: auto; white-space: nowrap }
+.formula .k { color: var(--ink2) }
+.note { font-size: 12.5px; color: var(--ink2); margin: 0; max-width: 52em }
+section { display: grid; gap: 14px }
+
+@media (max-width: 720px) {
+  .controls { grid-template-columns: minmax(0, 1fr) }
+  .pair { grid-template-columns: minmax(0, 1fr) }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Hydraulic excavator · 20 t class</div>
+    <h1>油圧ショベルの仕組み</h1>
+    <p class="lead">ショベルカーの腕は、エンジンの力を「油の圧力」に変え、シリンダーで押したり引いたりして動いています。下のレバーを動かすと、油の流れとシリンダーの伸び縮み、そこで生まれる力が実際の値に近い数字で動きます。</p>
+  </header>
+
+  <div class="card">
+    <div class="card-top"><span class="fig">Fig. 1</span><span class="ttl">油圧ショベル 側面図（20トン級）</span></div>
+    <div class="stage"><svg id="main" viewBox="0 70 960 570" role="img" aria-label="油圧ショベルの側面図。ブーム、アーム、バケットの3本の油圧シリンダーと、ポンプからの油圧ホースが描かれている。"></svg></div>
+    <div class="controls" id="controls"></div>
+    <div class="card-bot"><span>レバーを左右に動かす（離すと中立に戻る）　<button class="tour" id="tour" type="button" aria-pressed="true">自動デモ</button></span><span class="readout" id="readout">—</span></div>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--hp)"></i>高圧油（ポンプ → シリンダー）</span>
+    <span><i class="sw" style="background:var(--lp)"></i>戻り油（シリンダー → タンク）</span>
+    <span><i class="sw" style="background:var(--oil-hold)"></i>保持圧（重さを支えて閉じ込められた油）</span>
+    <span><i class="sw" style="background:var(--oil)"></i>流れていない油</span>
+  </div>
+
+  <div class="pair">
+    <div class="card">
+      <div class="card-top"><span class="fig">Fig. 2</span><span class="ttl" id="valveTitle">コントロールバルブ（スプール弁）</span></div>
+      <svg id="valve" viewBox="0 0 440 250" role="img" aria-label="スプール弁の断面図"></svg>
+      <p>レバーは油の通り道を切り替える棒（スプール）を動かすだけです。倒した量だけ通路が開き、流れる油の量、つまり動く速さが決まります。</p>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="fig">Fig. 3</span><span class="ttl" id="cylTitle">油圧シリンダー断面</span></div>
+      <svg id="cyl" viewBox="0 0 440 250" role="img" aria-label="油圧シリンダーの断面図"></svg>
+      <p>押し込まれた油の圧力が、ピストンの面積全体にかかります。面積が広いほど力は大きくなり、圧力 × 面積 ＝ 力 になります。</p>
+    </div>
+  </div>
+
+  <section>
+    <h2>動く順番</h2>
+    <ol class="steps">
+      <li><div><strong>エンジンがポンプを回す</strong><p>ディーゼルエンジン（約110 kW）が油圧ポンプを回し、タンクの作動油を吸い上げて送り出します。20トン級ではポンプ2台で毎分400リットル以上を送れます。</p></div></li>
+      <li><div><strong>レバーがスプール弁を動かす</strong><p>運転席のレバーを倒すと、コントロールバルブの中のスプールが左右にずれます。右へずれるとシリンダーの「押す側」に、左へずれると「引く側」に油の通路がつながります。中立では通路がふさがれ、シリンダーの油は閉じ込められて腕はその場で止まります。</p></div></li>
+      <li><div><strong>油がシリンダーを押す</strong><p>油は圧縮してもほとんど縮まないので、押し込んだ分だけピストンが動きます。ピストンの反対側の油は押し出されてタンクへ戻ります。</p></div></li>
+      <li><div><strong>圧力 × 面積で大きな力になる</strong><p>パスカルの原理で、閉じた油の中ではどこでも同じ圧力がかかります。細いホースで送った圧力が、太いシリンダーの広いピストン全体を押すので、数十トン分の力になります。</p></div></li>
+      <li><div><strong>行き止まりではリリーフ弁が逃がす</strong><p>シリンダーが端まで伸びきっても油を送り続けると、圧力が上がりすぎます。約34 MPaでリリーフ弁が開き、油をタンクへ逃がして機械を守ります。</p></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>ブームシリンダーで計算すると</h2>
+    <div class="formula" id="calc"></div>
+    <p class="note">数値は20トン級油圧ショベルの代表的な値です（ブームシリンダー内径120 mm・ロッド径85 mm×2本、アームシリンダー140/100 mm、バケットシリンダー120/85 mm、メインリリーフ34.3 MPa、ポンプ吐出量 約2×220 L/min）。重さはブーム1.9 t、アーム1.0 t、バケット0.75 t、土砂は満杯で1.8 tとしています。実際の機種では値が異なります。図は分かりやすさのため、旋回モーターや走行モーター、パイロット回路を省いています。</p>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const D = Math.PI / 180;
+
+// ---------- real numbers ----------
+const RELIEF = 34.3;          // MPa
+const QMAX = 440;             // L/min, two pumps
+const area = (mm) => Math.PI * (mm / 2000) ** 2;      // m²
+const CIRC = {
+  boom:   { name: "ブーム",   n: 2, bore: 120, rod: 85,  q: 420, ext: "上げ",     ret: "下げ",   min: -24 * D, max: 50 * D },
+  arm:    { name: "アーム",   n: 1, bore: 140, rod: 100, q: 400, ext: "引き込み", ret: "押し出し", min: -158 * D, max: -42 * D },
+  bucket: { name: "バケット", n: 1, bore: 120, rod: 85,  q: 220, ext: "掘削",     ret: "ダンプ", min: -150 * D, max: 20 * D },
+};
+for (const c of Object.values(CIRC)) { c.Ah = area(c.bore); c.Ar = c.Ah - area(c.rod); }
+const MASS = { boom: 1900, arm: 1000, bucket: 750, soil: 1800 };
+const G = 9.81;
+
+// ---------- geometry (metres, x forward, y up) ----------
+const J0 = [0.55, 1.95];              // boom foot pin
+const BOOM_CYL_BASE = [1.0, 1.18];
+const BOOM_L = 5.7, ARM_L = 2.9;
+const v = {
+  add: (a, b) => [a[0] + b[0], a[1] + b[1]], sub: (a, b) => [a[0] - b[0], a[1] - b[1]],
+  mul: (a, k) => [a[0] * k, a[1] * k], len: (a) => Math.hypot(a[0], a[1]),
+  unit: (a) => { const l = Math.hypot(a[0], a[1]) || 1; return [a[0] / l, a[1] / l]; },
+  lerp: (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t],
+};
+const frame = (o, ang) => { const u = [Math.cos(ang), Math.sin(ang)], n = [-u[1], u[0]]; return (a, b) => [o[0] + a * u[0] + b * n[0], o[1] + a * u[1] + b * n[1]]; };
+function circleX(c1, r1, c2, r2, pick) {
+  const d = v.len(v.sub(c2, c1)); const a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, r1 * r1 - a * a)); const m = v.add(c1, v.mul(v.sub(c2, c1), a / d));
+  const p = [-(c2[1] - c1[1]) / d * h, (c2[0] - c1[0]) / d * h];
+  const s1 = v.add(m, p), s2 = v.sub(m, p);
+  return pick(s1, s2);
+}
+function pose(q) {
+  const fb = frame(J0, q.boom);
+  const J1 = fb(BOOM_L, 0);
+  const al = q.boom + q.arm, fa = frame(J1, al);
+  const J2 = fa(ARM_L, 0);
+  const bl = al + q.bucket, fk = frame(J2, bl);
+  // bucket linkage: side link on arm, H-link to bucket
+  const Al = fa(2.42, 0.34), Bk = fk(-0.04, 0.44);
+  const Qp = circleX(Al, 0.62, Bk, 0.66, (s1, s2) => {
+    // the joint sits on the outside of the arm
+    const n = [-Math.sin(al), Math.cos(al)];
+    return ((s1[0] - J2[0]) * n[0] + (s1[1] - J2[1]) * n[1]) > ((s2[0] - J2[0]) * n[0] + (s2[1] - J2[1]) * n[1]) ? s1 : s2;
+  });
+  const cyl = {
+    boom: [BOOM_CYL_BASE, fb(2.5, -0.18)],
+    arm: [fb(2.75, 1.12), fa(-0.78, 0.2)],
+    bucket: [fa(0.32, 0.42), Qp],
+  };
+  return { fb, fa, fk, J1, J2, Al, Bk, Qp, cyl, al, bl };
+}
+const cylLen = (q, k) => { const c = pose(q).cyl[k]; return v.len(v.sub(c[1], c[0])); };
+const dLdq = (q, k) => { const h = 0.002; const a = { ...q }, b = { ...q }; a[k] -= h; b[k] += h; return (cylLen(b, k) - cylLen(a, k)) / (2 * h); };
+// stroke limits from the joint limits
+for (const k of Object.keys(CIRC)) {
+  const c = CIRC[k]; let lo = 1e9, hi = -1e9;
+  const base = { boom: 20 * D, arm: -100 * D, bucket: -60 * D };
+  for (let i = 0; i <= 60; i++) { const q = { ...base }; q[k] = c.min + (c.max - c.min) * i / 60; const L = cylLen(q, k); lo = Math.min(lo, L); hi = Math.max(hi, L); }
+  c.Lmin = lo; c.Lmax = hi; c.barrel = lo - 0.12;
+}
+
+// gravity torque about each joint (N·m, CCW positive)
+function centres(q, P) {
+  const boomC = P.fb(2.6, 0.35), armC = P.fa(1.25, 0.05), bkC = P.fk(0.7, 0.12), soilC = P.fk(0.75, -0.25);
+  return { boomC, armC, bkC, soilC };
+}
+function gravTorque(q, k, fill) {
+  const P = pose(q), C = centres(q, P);
+  const J = k === "boom" ? J0 : k === "arm" ? P.J1 : P.J2;
+  const items = [];
+  if (k === "boom") items.push([C.boomC, MASS.boom]);
+  if (k !== "bucket") items.push([C.armC, MASS.arm]);
+  items.push([C.bkC, MASS.bucket], [C.soilC, MASS.soil * fill]);
+  let t = 0; for (const [c, m] of items) t += -m * G * (c[0] - J[0]);
+  return t;
+}
+
+// ---------- state ----------
+const st = { q: { boom: 24 * D, arm: -55 * D, bucket: -15 * D }, lever: { boom: 0, arm: 0, bucket: 0 }, spool: { boom: 0, arm: 0, bucket: 0 },
+  fill: 0, focus: "boom", phase: 0, pump: 0, info: {} };
+const held = { boom: false, arm: false, bucket: false };
+let touring = !reduce, idleT = 0, tourT = 0;
+
+// ---------- svg helpers ----------
+const S = 60, OX = 204, OY = 470;
+const X = (p) => (OX + p[0] * S).toFixed(1), Y = (p) => (OY - p[1] * S).toFixed(1);
+const pt = (p) => X(p) + "," + Y(p);
+const path = (pts, cls, close = true, extra = "") => `<path class="${cls}" d="M${pts.map(pt).join("L")}${close ? "Z" : ""}" ${extra}/>`;
+const circ = (c, r, cls) => `<circle class="${cls}" cx="${X(c)}" cy="${Y(c)}" r="${(r * S).toFixed(1)}"/>`;
+const pin = (c, r = 0.09) => circ(c, r, "steel") + circ(c, 0.03, "dot");
+function smooth(pts) { // rounded polyline through points (quadratic corners)
+  if (pts.length < 3) return "M" + pts.map(pt).join("L");
+  let d = "M" + pt(pts[0]);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const a = pts[i - 1], b = pts[i], c = pts[i + 1];
+    const r = Math.min(0.22, v.len(v.sub(b, a)) / 2, v.len(v.sub(c, b)) / 2);
+    const p1 = v.add(b, v.mul(v.unit(v.sub(a, b)), r)), p2 = v.add(b, v.mul(v.unit(v.sub(c, b)), r));
+    d += "L" + pt(p1) + "Q" + pt(b) + " " + pt(p2);
+  }
+  return d + "L" + pt(pts[pts.length - 1]);
+}
+function rectAlong(a, b, r, cls) { // capsule-less box from a to b, half-width r
+  const d = v.unit(v.sub(b, a)), n = [-d[1] * r, d[0] * r];
+  return path([v.add(a, n), v.add(b, n), v.sub(b, n), v.sub(a, n)], cls);
+}
+
+// ---------- static scene ----------
+function groundSvg() {
+  const surf = [[-4, 0], [5.0, 0], [5.9, -2.2], [9.3, -2.2], [10.5, 0], [13, 0]];
+  let s = path([...surf, [13, -3.2], [-4, -3.2]], "ground");
+  let h = "";
+  for (let x = -3.4; x < 12.6; x += 0.42) {
+    const top = x < 5 || x > 10.5 ? 0 : x < 5.9 ? -(x - 5) / 0.9 * 2.2 : x < 9.3 ? -2.2 : -2.2 + (x - 9.3) / 1.2 * 2.2;
+    const y0 = top - 0.18; if (y0 - 0.3 < -2.85) continue;
+    h += `<line class="hatch" x1="${X([x, 0])}" y1="${Y([0, y0])}" x2="${X([x + 0.25, 0])}" y2="${Y([0, y0 - 0.25])}"/>`;
+  }
+  s += h + path(surf, "ln", false);
+  // pebbles in the pit floor
+  for (const [x, y] of [[6.3, -2.3], [7.1, -2.4], [8.4, -2.32], [8.8, -2.5]]) s += circ([x, y], 0.04, "soil");
+  return s;
+}
+function undercarriage() {
+  let s = "";
+  // track belt outline
+  const top = 0.95, bot = 0.02;
+  s += `<path class="steel-dk" d="M${pt([-1.9, top])}L${pt([1.9, top - 0.02])}A${0.47 * S} ${0.47 * S} 0 0 1 ${pt([1.9, bot])}L${pt([-1.9, bot])}A${0.47 * S} ${0.47 * S} 0 0 1 ${pt([-1.9, top])}Z"/>`;
+  // grousers on the ground run
+  for (let x = -1.85; x <= 1.9; x += 0.19) s += `<line class="thin" x1="${X([x, 0])}" y1="${Y([0, bot])}" x2="${X([x, 0])}" y2="${Y([0, bot + 0.1])}"/>`;
+  for (let x = -1.8; x <= 1.85; x += 0.19) s += `<line class="thin" x1="${X([x, 0])}" y1="${Y([0, top])}" x2="${X([x, 0])}" y2="${Y([0, top - 0.1])}"/>`;
+  // track frame
+  s += path([[-1.75, 0.78], [1.75, 0.78], [1.6, 0.22], [-1.6, 0.22]], "body");
+  s += path([[-1.6, 0.3], [1.6, 0.3], [1.55, 0.22], [-1.55, 0.22]], "body-lo");
+  // sprocket (rear) and idler (front)
+  s += circ([-1.9, 0.48], 0.4, "steel") + circ([-1.9, 0.48], 0.24, "steel-dk") + circ([-1.9, 0.48], 0.08, "steel");
+  for (let i = 0; i < 9; i++) { const a = i * 40 * D; s += circ([-1.9 + Math.cos(a) * 0.16, 0.48 + Math.sin(a) * 0.16], 0.025, "dot"); }
+  s += circ([1.9, 0.48], 0.4, "steel") + circ([1.9, 0.48], 0.3, "steel-dk") + circ([1.9, 0.48], 0.08, "steel");
+  // rollers
+  for (let i = 0; i < 7; i++) { const x = -1.2 + i * 0.4; s += circ([x, 0.2], 0.13, "steel") + circ([x, 0.2], 0.035, "dot"); }
+  for (const x of [-0.6, 0.6]) s += circ([x, 0.84], 0.09, "steel") + circ([x, 0.84], 0.025, "dot");
+  return s;
+}
+function upper() {
+  let s = "";
+  // swing bearing
+  s += path([[-0.95, 0.95], [0.95, 0.95], [0.85, 1.12], [-0.85, 1.12]], "steel-dk");
+  for (let x = -0.75; x <= 0.76; x += 0.25) s += circ([x, 1.035], 0.022, "dot");
+  // deck
+  s += path([[-2.95, 1.12], [1.35, 1.12], [1.35, 1.36], [-2.95, 1.36]], "body-dk");
+  // cab (far side, behind the boom)
+  s += path([[-0.25, 1.36], [1.1, 1.36], [1.18, 2.35], [0.95, 3.05], [-0.25, 3.05]], "body");
+  s += path([[-0.12, 1.95], [0.95, 1.95], [1.02, 2.38], [0.85, 2.92], [-0.12, 2.92]], "glass");
+  s += `<line class="thin" x1="${X([0.42, 0])}" y1="${Y([0, 1.95])}" x2="${X([0.42, 0])}" y2="${Y([0, 2.92])}"/>`;
+  s += path([[-0.25, 3.05], [0.95, 3.05], [0.9, 3.12], [-0.25, 3.12]], "body-dk");
+  // engine hood and counterweight
+  s += path([[-2.05, 1.36], [-0.25, 1.36], [-0.25, 2.3], [-2.05, 2.3]], "body");
+  s += path([[-3.12, 1.12], [-2.0, 1.12], [-2.0, 2.32], [-2.9, 2.32], [-3.12, 2.05]], "body");
+  s += path([[-3.12, 1.12], [-2.0, 1.12], [-2.0, 1.3], [-3.12, 1.3]], "body-lo");
+  // muffler stack
+  s += path([[-1.85, 2.3], [-1.75, 2.3], [-1.75, 2.62], [-1.85, 2.62]], "steel-dk");
+  // vents
+  for (let i = 0; i < 6; i++) { const x = -2.85 + i * 0.13; s += `<line class="thin" x1="${X([x, 0])}" y1="${Y([0, 1.55])}" x2="${X([x, 0])}" y2="${Y([0, 2.05])}"/>`; }
+  // cut-away window over the pump room
+  s += path([[-1.98, 1.44], [-0.36, 1.44], [-0.36, 2.22], [-1.98, 2.22]], "paper");
+  // tank
+  s += path([[-1.92, 1.5], [-1.56, 1.5], [-1.56, 2.04], [-1.92, 2.04]], "steel");
+  s += `<rect x="${X([-1.89, 0])}" y="${Y([0, 1.86])}" width="${(0.3 * S).toFixed(1)}" height="${(0.33 * S).toFixed(1)}" fill="var(--lp)" opacity=".55"/>`;
+  s += `<text class="tag" style="font-size:9px" x="${X([-1.74, 0])}" y="${Y([0, 2.1])}" text-anchor="middle">TANK</text>`;
+  // engine flywheel housing and pump
+  s += path([[-1.5, 1.52], [-1.4, 1.52], [-1.4, 1.98], [-1.5, 1.98]], "steel-dk");
+  s += circ([-1.18, 1.74], 0.2, "steel") + `<g id="pumpRotor"></g>`;
+  s += `<text class="tag" style="font-size:9px" x="${X([-1.18, 0])}" y="${Y([0, 2.1])}" text-anchor="middle">PUMP</text>`;
+  // valve block
+  s += path([[-0.74, 1.5], [-0.44, 1.5], [-0.44, 2.04], [-0.74, 2.04]], "steel");
+  s += `<g id="spools"></g>`;
+  s += `<text class="tag" style="font-size:9px" x="${X([-0.59, 0])}" y="${Y([0, 2.1])}" text-anchor="middle">VALVE</text>`;
+  // corner screws on the cut-away
+  for (const p of [[-1.95, 1.47], [-0.39, 1.47], [-1.95, 2.19], [-0.39, 2.19]]) s += circ(p, 0.018, "dot");
+  return s;
+}
+// tank → pump suction, pump → valve pressure line (static routes, coloured live)
+const SUCTION = [[-1.56, 1.62], [-1.36, 1.62]];
+const PRESS = [[-1.18, 1.94], [-1.18, 2.0], [-0.74, 2.0]];
+const RETURN = [[-0.74, 1.56], [-1.56, 1.56]];
+
+// ---------- live scene ----------
+function cylinder(base, pinp, c, rB) {
+  const d = v.unit(v.sub(pinp, base)); const end = v.add(base, v.mul(d, c.barrel));
+  const rodStart = v.add(base, v.mul(d, c.barrel - 0.2));
+  let s = rectAlong(rodStart, pinp, rB * 0.55, "rod");
+  s += rectAlong(v.add(base, v.mul(d, 0.05)), end, rB, "body");
+  s += rectAlong(v.add(base, v.mul(d, 0.05)), v.add(base, v.mul(d, 0.05 + c.barrel * 0.42)), rB * 0.32, "body-hi");
+  s += rectAlong(v.sub(end, v.mul(d, 0.12)), end, rB * 1.12, "body-dk");     // gland
+  s += rectAlong(v.add(base, v.mul(d, 0.02)), v.add(base, v.mul(d, 0.16)), rB * 1.12, "body-dk"); // base cap
+  s += circ(pinp, rB * 0.95, "steel") + circ(pinp, 0.03, "dot");
+  s += circ(base, rB * 1.05, "steel") + circ(base, 0.03, "dot");
+  return { s, end, d };
+}
+function hoseSvg(pts, state, phase, id) {
+  const d = smooth(pts);
+  let col = "var(--oil)";
+  if (state === "hp") col = "var(--hp)"; else if (state === "lp") col = "var(--lp)"; else if (state === "hold") col = "var(--oil-hold)";
+  let s = `<path class="hose hose-o" d="${d}"/><path class="hose hose-i" style="stroke:${col}" d="${d}"/>`;
+  if (state === "hp" || state === "lp") s += `<path class="flow" style="stroke:var(--card);opacity:.75" stroke-dashoffset="${(-phase).toFixed(1)}" d="${d}"/>`;
+  return s;
+}
+function bucketShape(fk) {
+  const shell = [[-0.18, 0.4], [0.05, 0.62], [0.45, 0.72], [0.95, 0.62], [1.32, 0.38], [1.52, 0.06], [1.62, -0.06], [1.42, -0.1], [1.1, -0.2], [0.55, -0.3], [0.12, -0.22], [-0.12, 0.05]].map(([a, b]) => fk(a, b));
+  return shell;
+}
+function draw() {
+  const q = st.q, P = pose(q), I = st.info;
+  let s = "";
+  // ----- hoses (ride on structure) -----
+  const fb = P.fb, fa = P.fa;
+  const st2 = (k) => { // [head-side, rod-side] state
+    const i = I[k]; if (!i) return ["idle", "idle"];
+    if (i.moving > 0) return ["hp", "lp"]; if (i.moving < 0) return ["lp", "hp"];
+    return i.F >= 0 ? ["hold", "idle"] : ["idle", "hold"];
+  };
+  const ph = st.phase;
+  const bc = P.cyl.boom, ac = P.cyl.arm, kc = P.cyl.bucket;
+  const unitB = v.unit(v.sub(bc[1], bc[0])), unitA = v.unit(v.sub(ac[1], ac[0])), unitK = v.unit(v.sub(kc[1], kc[0]));
+  const bEnd = v.add(bc[0], v.mul(unitB, CIRC.boom.barrel - 0.18)), aEnd = v.add(ac[0], v.mul(unitA, CIRC.arm.barrel - 0.18)), kEnd = v.add(kc[0], v.mul(unitK, CIRC.bucket.barrel - 0.18));
+  const sB = st2("boom"), sA = st2("arm"), sK = st2("bucket");
+  let hoses = "";
+  // boom circuit: valve → under the boom foot → cylinder ports
+  hoses += hoseSvg([[-0.44, 1.92], [0.2, 1.92], [0.55, 1.5], [0.98, 1.38], v.add(bc[0], v.mul(unitB, 0.2))], sB[0], ph, "b0");
+  hoses += hoseSvg([[-0.44, 1.82], [0.15, 1.82], [0.5, 1.42], fb(0.9, -0.5), fb(1.6, -0.36), v.add(bEnd, [0, 0]) ], sB[1], ph, "b1");
+  // arm circuit: along the boom top
+  hoses += hoseSvg([[-0.44, 2.04], [0.1, 2.06], fb(0.1, 0.5), fb(1.3, 0.86), fb(2.45, 1.2), v.add(ac[0], v.mul(unitA, 0.2))], sA[0], ph, "a0");
+  hoses += hoseSvg([[-0.44, 2.1], [0.05, 2.14], fb(0.05, 0.6), fb(1.3, 0.98), fb(2.4, 1.34), fb(3.2, 1.36), aEnd], sA[1], ph, "a1");
+  // bucket circuit: along the boom side, over the boom nose, down the arm
+  const nose = fb(5.55, 0.44);
+  hoses += hoseSvg([[-0.44, 1.72], [0.02, 1.7], fb(0.3, 0.12), fb(2.4, 0.62), fb(4.2, 0.6), nose, fa(-0.1, 0.38), fa(0.1, 0.42), v.add(kc[0], v.mul(unitK, 0.2))], sK[0], ph, "k0");
+  hoses += hoseSvg([[-0.44, 1.62], [-0.02, 1.6], fb(0.32, 0.0), fb(2.4, 0.5), fb(4.2, 0.48), fb(5.5, 0.32), fa(-0.05, 0.52), fa(0.4, 0.6), kEnd], sK[1], ph, "k1");
+
+  // ----- boom cylinder (under the boom) -----
+  const cb = cylinder(bc[0], bc[1], CIRC.boom, 0.1);
+  s += cb.s;
+  // ----- boom -----
+  const boom = [[-0.28, 0.3], [0.6, 0.62], [2.3, 1.08], [3.1, 1.1], [5.85, 0.3], [5.92, 0.0], [5.7, -0.3], [3.0, 0.32], [2.35, 0.26], [0.6, -0.12], [-0.25, -0.3]].map(([a, b]) => fb(a, b));
+  s += path(boom, "body");
+  s += path([[0.6, -0.12], [2.35, 0.26], [3.0, 0.32], [5.7, -0.3], [5.62, -0.12], [3.0, 0.45], [2.35, 0.4], [0.6, 0.02]].map(([a, b]) => fb(a, b)), "body-lo");
+  s += path([[0.7, 0.5], [2.3, 0.94], [3.1, 0.96], [5.5, 0.28]].map(([a, b]) => fb(a, b)), "thin", false);
+  // brackets: boom-cylinder lug and arm-cylinder lug
+  s += path([[2.2, 0.27], [2.8, 0.31], [2.6, -0.24], [2.4, -0.24]].map(([a, b]) => fb(a, b)), "body-dk");
+  s += path([[2.45, 1.08], [3.05, 1.1], [2.9, 1.25], [2.6, 1.25]].map(([a, b]) => fb(a, b)), "body-dk");
+  for (const [a, b] of [[1.2, 0.35], [1.6, 0.45], [4.0, 0.5], [4.6, 0.35]]) s += circ(fb(a, b), 0.022, "dot");
+  s += hoses; // hoses drawn on the near face of the boom
+  s += pin(J0, 0.13);
+  // ----- arm cylinder (rides on the boom) -----
+  s += cylinder(ac[0], ac[1], CIRC.arm, 0.12).s;
+  // ----- arm -----
+  const arm = [[-0.92, 0.3], [-0.62, 0.42], [0.25, 0.3], [2.9, 0.16], [3.02, 0.0], [2.9, -0.16], [0.4, -0.28], [-0.25, -0.26], [-0.92, 0.08]].map(([a, b]) => fa(a, b));
+  s += path(arm, "body");
+  s += path([[0.4, -0.28], [2.9, -0.16], [2.86, -0.06], [0.42, -0.16]].map(([a, b]) => fa(a, b)), "body-lo");
+  s += path([[0.1, 0.14], [2.6, 0.06]].map(([a, b]) => fa(a, b)), "thin", false);
+  for (const [a, b] of [[0.7, 0.0], [1.4, -0.02], [2.1, -0.04]]) s += circ(fa(a, b), 0.022, "dot");
+  s += pin(P.J1, 0.12);
+  s += pin(fa(-0.78, 0.2), 0.09);
+  // bucket cylinder base lug
+  s += path([[0.12, 0.28], [0.52, 0.27], [0.4, 0.5], [0.24, 0.5]].map(([a, b]) => fa(a, b)), "body-dk");
+  // ----- bucket linkage + cylinder -----
+  s += cylinder(kc[0], kc[1], CIRC.bucket, 0.09).s;
+  s += rectAlong(P.Al, P.Qp, 0.055, "steel");
+  s += rectAlong(P.Qp, P.Bk, 0.06, "steel-dk");
+  s += pin(P.Al, 0.07) + pin(P.Qp, 0.08);
+  // ----- bucket -----
+  const fk = P.fk;
+  s += path(bucketShape(fk), "body");
+  s += path([[0.12, -0.22], [0.55, -0.3], [1.1, -0.2], [1.42, -0.1], [1.4, 0.02], [1.05, -0.06], [0.55, -0.14], [0.15, -0.08]].map(([a, b]) => fk(a, b)), "body-dk");
+  s += path([[1.42, -0.1], [1.62, -0.06], [1.78, -0.14], [1.6, -0.2]].map(([a, b]) => fk(a, b)), "steel"); // tooth
+  s += path([[0.1, 0.52], [0.5, 0.6], [0.95, 0.5], [1.25, 0.3]].map(([a, b]) => fk(a, b)), "thin", false);
+  if (st.fill > 0.02) {
+    // the heap shows above the rim only while the mouth faces up
+    const f = st.fill * Math.max(0, Math.min(1, -Math.cos(P.bl) * 1.6));
+    if (f > 0.03) s += path([[0.2, -0.2], [0.5, -0.28 - 0.32 * f], [0.9, -0.24 - 0.36 * f], [1.25, -0.15 - 0.2 * f], [1.38, -0.1]].map(([a, b]) => fk(a, b)), "soil");
+  }
+  s += pin(P.J2, 0.1) + pin(P.Bk, 0.07);
+  return s;
+}
+
+// ---------- spool valve and cylinder section ----------
+function valveSvg(k) {
+  const sp = st.spool[k], i = st.info[k] || {}; const W = 440;
+  const sh = sp * 26; // px
+  const col = (state) => state === "hp" ? "var(--hp)" : state === "lp" ? "var(--lp)" : state === "hold" ? "var(--oil-hold)" : "var(--oil)";
+  const ext = sp > 0.04, ret = sp < -0.04;
+  const A = ext ? "hp" : ret ? "lp" : (i.F >= 0 ? "hold" : "idle");
+  const B = ret ? "hp" : ext ? "lp" : (i.F < 0 ? "hold" : "idle");
+  const Pc = ext || ret ? "hp" : "lp";
+  const T = ext || ret ? "lp" : "lp";
+  let s = "";
+  // body
+  s += `<rect class="steel" x="40" y="70" width="360" height="110" rx="6"/>`;
+  // ports: B, P, A on top; T on bottom both ends; bypass under the P chamber
+  const chamber = (x, w, c) => `<rect x="${x}" y="98" width="${w}" height="54" fill="${c}" stroke="var(--ink)" stroke-width="1"/>`;
+  s += chamber(62, 46, col(T)) + chamber(140, 46, col(B)) + chamber(197, 46, col(Pc)) + chamber(254, 46, col(A)) + chamber(332, 46, col(T));
+  const port = (x, c, label, up = true) => up
+    ? `<rect x="${x}" y="30" width="18" height="70" fill="${c}" stroke="var(--ink)" stroke-width="1"/><text class="tag-b" x="${x + 9}" y="22" text-anchor="middle">${label}</text>`
+    : `<rect x="${x}" y="150" width="18" height="62" fill="${c}" stroke="var(--ink)" stroke-width="1"/><text class="tag-b" x="${x + 9}" y="232" text-anchor="middle">${label}</text>`;
+  s += port(154, col(B), "B") + port(211, col(Pc), "P") + port(268, col(A), "A");
+  s += port(76, col("lp"), "T", false) + port(346, col("lp"), "T", false);
+  // centre bypass: open only in neutral
+  const by = Math.max(0, 1 - Math.abs(sp) * 3);
+  s += `<rect x="211" y="150" width="18" height="62" fill="${by > 0.05 ? "var(--lp)" : "var(--steel-dk)"}" opacity="${(0.35 + 0.65 * by).toFixed(2)}" stroke="var(--ink)" stroke-width="1"/>`;
+  s += `<text class="tag" x="236" y="200">センターバイパス</text>`;
+  // spool: rod with four lands
+  s += `<g transform="translate(${sh.toFixed(1)},0)">`;
+  s += `<rect class="rod" x="20" y="119" width="400" height="12" rx="3"/>`;
+  for (const x of [108, 186, 243, 300]) s += `<rect class="rod" x="${x - (x === 186 || x === 243 ? 11 : 0)}" y="98" width="${x === 108 || x === 300 ? 32 : 22}" height="54" rx="2"/>`;
+  s += `</g>`;
+  s += `<rect class="steel-dk" x="12" y="112" width="14" height="26" rx="2"/><rect class="steel-dk" x="414" y="112" width="14" height="26" rx="2"/>`;
+  // labels
+  s += `<text class="tagj" x="44" y="62">← ${CIRC[k].ret}</text><text class="tagj" x="396" y="62" text-anchor="end">${CIRC[k].ext} →</text>`;
+  s += `<text class="tag" x="220" y="246" text-anchor="middle">スプール位置 ${(sp * 100).toFixed(0).padStart(4, " ")} %</text>`;
+  return s;
+}
+function cylSvg(k) {
+  const c = CIRC[k], i = st.info[k] || {}; const L = cylLen(st.q, k);
+  const f = (L - c.Lmin) / (c.Lmax - c.Lmin); // stroke fraction
+  const x0 = 34, x1 = 300; const px = x0 + 30 + f * (x1 - x0 - 70);
+  const ext = i.moving > 0, ret = i.moving < 0;
+  const head = ext ? "var(--hp)" : ret ? "var(--lp)" : (i.F >= 0 ? "var(--oil-hold)" : "var(--oil)");
+  const rodc = ret ? "var(--hp)" : ext ? "var(--lp)" : (i.F < 0 ? "var(--oil-hold)" : "var(--oil)");
+  let s = "";
+  s += `<rect class="body" x="${x0 - 10}" y="72" width="${x1 - x0 + 20}" height="96" rx="6"/>`;
+  s += `<rect x="${x0}" y="86" width="${px - x0}" height="68" fill="${head}"/>`;
+  s += `<rect x="${px + 22}" y="86" width="${x1 - px - 22}" height="68" fill="${rodc}"/>`;
+  s += `<rect class="rod" x="${px + 22}" y="104" width="${420 - px - 22}" height="32"/>`;
+  s += `<rect class="steel" x="${px}" y="86" width="22" height="68"/>`;
+  for (const y of [92, 146]) s += `<line class="thin" x1="${px + 4}" y1="${y}" x2="${px + 18}" y2="${y}"/>`;
+  s += `<rect class="body-dk" x="${x1 - 2}" y="80" width="18" height="80"/>`;
+  s += `<rect class="ln" x="${x0}" y="86" width="${x1 - x0}" height="68" style="fill:none"/>`;
+  s += `<circle class="steel" cx="${x0 - 18}" cy="120" r="12"/><circle class="dot" cx="${x0 - 18}" cy="120" r="3"/>`;
+  // ports
+  s += `<rect x="${x0 + 8}" y="44" width="14" height="30" fill="${head}" stroke="var(--ink)" stroke-width="1"/><text class="tag-b" x="${x0 + 15}" y="36" text-anchor="middle">A</text>`;
+  s += `<rect x="${x1 - 26}" y="44" width="14" height="30" fill="${rodc}" stroke="var(--ink)" stroke-width="1"/><text class="tag-b" x="${x1 - 19}" y="36" text-anchor="middle">B</text>`;
+  // numbers
+  const ph = i.P || 0;
+  s += `<text class="tag" x="${x0}" y="192">ヘッド側 ${(c.Ah * 1e4).toFixed(0)} cm²</text>`;
+  s += `<text class="tag" x="${x1 - 10}" y="192" text-anchor="end">ロッド側 ${(c.Ar * 1e4).toFixed(0)} cm²</text>`;
+  s += `<text class="tag-b" x="${x0}" y="222">${ph.toFixed(1)} MPa × ${((i.side > 0 ? c.Ah : c.Ar) * 1e4 * c.n).toFixed(0)} cm² ＝ ${(Math.abs(i.Fout || 0) / 1000).toFixed(0)} kN</text>`;
+  s += `<text class="tag" x="${x0}" y="242">ストローク ${((L - c.Lmin) * 1000).toFixed(0)} / ${((c.Lmax - c.Lmin) * 1000).toFixed(0)} mm${c.n > 1 ? "　（2本）" : ""}</text>`;
+  return s;
+}
+
+// ---------- physics step ----------
+function step(dt) {
+  const tip0 = pose(st.q).fk(1.7, -0.1);
+  const digging = tip0[0] > 5.2 && tip0[0] < 9.8 && tip0[1] < -0.3;
+  for (const k of Object.keys(CIRC)) {
+    const c = CIRC[k];
+    st.spool[k] += (st.lever[k] - st.spool[k]) * (1 - Math.exp(-dt * 14));
+    const sp = st.spool[k];
+    const q = st.q;
+    const tau = gravTorque(q, k, st.fill);
+    const g = dLdq(q, k);               // m per rad
+    const F = -tau / g;                 // N needed on the rod (+ push)
+    let moving = 0, P = 0, side = F >= 0 ? 1 : -1, relief = false, vel = 0;
+    const open = Math.abs(sp) > 0.04 ? Math.sign(sp) * Math.min(1, (Math.abs(sp) - 0.04) / 0.96) : 0;
+    if (open !== 0) {
+      side = open > 0 ? 1 : -1;
+      const A = (open > 0 ? c.Ah : c.Ar) * c.n;
+      const need = (open > 0 ? F : -F) / A / 1e6; // MPa needed on the supply side
+      P = Math.max(2.5, need);
+      // teeth in the soil: cutting resistance on arm-in and bucket curl (about 15–25 MPa in real digging)
+      if (digging && open > 0 && (k === "arm" || k === "bucket")) P = Math.max(P, 16 + 6 * Math.abs(open) + 2 * Math.sin(st.phase * 0.7));
+      const Q = Math.abs(open) * c.q / 60000;    // m³/s
+      vel = (open > 0 ? 1 : -1) * Q / A;         // m/s
+      const atEnd = (open > 0 && q[k] >= c.max - 1e-4 && g > 0) || (open < 0 && q[k] <= c.min + 1e-4 && g > 0);
+      if (P > RELIEF || atEnd) { P = RELIEF; relief = true; vel = 0; }
+      else moving = open > 0 ? 1 : -1;
+      const dq = vel / g * dt;
+      q[k] = Math.min(c.max, Math.max(c.min, q[k] + dq));
+      st.info[k] = { F, P, side, relief, moving, vel, Q: relief ? 0 : Q * 60000, Fout: P * 1e6 * A * Math.sign(side) };
+    } else {
+      const A = (F >= 0 ? c.Ah : c.Ar) * c.n;
+      P = Math.min(RELIEF, Math.abs(F) / A / 1e6);
+      st.info[k] = { F, P, side: F >= 0 ? 1 : -1, relief: false, moving: 0, vel: 0, Q: 0, Fout: P * 1e6 * A * (F >= 0 ? 1 : -1) };
+    }
+  }
+  // digging fills the bucket, dumping empties it
+  const P = pose(st.q); const tip = P.fk(1.7, -0.1);
+  const inPit = tip[0] > 5.2 && tip[0] < 9.8 && tip[1] < -0.3;
+  if (inPit && st.info.bucket.moving > 0) st.fill = Math.min(1, st.fill + dt * 1.1);
+  if (st.q.bucket > -25 * D && !inPit) st.fill = Math.max(0, st.fill - dt * 1.2);
+  const flow = Object.values(st.info).reduce((a, i) => a + Math.abs(i.Q || 0), 0);
+  st.phase += dt * (8 + flow * 0.22);
+  st.pump += dt * (2 + flow / 40);
+}
+
+// ---------- demo tour: an operator steering toward target postures ----------
+const TOUR = [ // [boom, arm, bucket] in degrees, max seconds
+  [[24, -55, -15], 3.5],   // reach out over the pit
+  [[6, -60, -25], 3],      // boom down into the pit
+  [[8, -74, -34], 3],      // arm in: drag the teeth through the soil
+  [[8, -76, -110], 3],     // curl the bucket shut
+  [[42, -95, -118], 4],    // boom up with the load
+  [[42, -62, 10], 3.5],    // arm out and dump
+];
+let tourI = 0;
+function tourLevers(dt) {
+  const [tgt, tmax] = TOUR[tourI]; const keys = ["boom", "arm", "bucket"]; const out = {}; let done = true;
+  keys.forEach((k, i) => {
+    const err = tgt[i] * D - st.q[k]; if (Math.abs(err) > 1.5 * D) done = false;
+    const sign = Math.sign(dLdq(st.q, k)) || 1;
+    out[k] = Math.max(-0.95, Math.min(0.95, err / D * 0.09 * sign));
+  });
+  tourT += dt;
+  if (done || tourT > tmax) { tourI = (tourI + 1) % TOUR.length; tourT = 0; }
+  return out;
+}
+
+// ---------- DOM ----------
+const main = document.getElementById("main");
+main.innerHTML = `<g id="g-ground">${groundSvg()}</g><g>${undercarriage()}${upper()}</g><g id="g-pipes"></g><g id="g-live"></g>
+  <text class="tag" x="${X([11.6, 0])}" y="${Y([0, -0.5])}" text-anchor="middle">掘削場所</text>`;
+const gLive = document.getElementById("g-live"), gPipes = document.getElementById("g-pipes");
+const rotor = document.getElementById("pumpRotor"), spools = document.getElementById("spools");
+const valveEl = document.getElementById("valve"), cylEl = document.getElementById("cyl");
+const readout = document.getElementById("readout"), calcEl = document.getElementById("calc");
+const tourBtn = document.getElementById("tour");
+const controls = document.getElementById("controls");
+const KEYS = { boom: ["S", "W"], arm: ["K", "I"], bucket: ["J", "L"] };
+const inputs = {};
+for (const k of Object.keys(CIRC)) {
+  const c = CIRC[k];
+  const el = document.createElement("div"); el.className = "lever"; el.id = "lv-" + k;
+  el.innerHTML = `<div class="lever-h"><strong>${c.name}</strong><kbd>${KEYS[k][0]} / ${KEYS[k][1]}</kbd></div>
+    <input type="range" id="in-${k}" min="-100" max="100" value="0" step="1" aria-label="${c.name}レバー（左：${c.ret}、右：${c.ext}）">
+    <div class="ends"><span>← ${c.ret}</span><span>${c.ext} →</span></div>`;
+  controls.appendChild(el);
+  const inp = el.querySelector("input"); inputs[k] = inp;
+  const grab = () => { held[k] = true; stopTour(); st.focus = k; };
+  inp.addEventListener("pointerdown", grab);
+  inp.addEventListener("input", () => { grab(); st.lever[k] = inp.value / 100; });
+  const release = () => { held[k] = false; };
+  inp.addEventListener("pointerup", release); inp.addEventListener("pointercancel", release);
+  inp.addEventListener("keyup", release); inp.addEventListener("blur", release);
+}
+const keyMap = {}; for (const [k, [neg, pos]] of Object.entries(KEYS)) { keyMap[neg.toLowerCase()] = [k, -1]; keyMap[pos.toLowerCase()] = [k, 1]; }
+const keyDown = {};
+addEventListener("keydown", (e) => {
+  if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return;
+  const m = keyMap[e.key.toLowerCase()]; if (!m) return;
+  keyDown[e.key.toLowerCase()] = true; stopTour(); st.focus = m[0]; held[m[0]] = true; st.lever[m[0]] = m[1] * 0.85; e.preventDefault();
+});
+addEventListener("keyup", (e) => { const m = keyMap[e.key.toLowerCase()]; if (!m) return; keyDown[e.key.toLowerCase()] = false; held[m[0]] = false; });
+function stopTour() { touring = false; idleT = 0; tourBtn.setAttribute("aria-pressed", "false"); }
+tourBtn.addEventListener("click", () => { touring = !touring; idleT = 0; tourT = 0; tourBtn.setAttribute("aria-pressed", String(touring)); });
+
+function render() {
+  gLive.innerHTML = draw();
+  const flow = Object.values(st.info).reduce((a, i) => a + Math.abs(i.Q || 0), 0);
+  const any = flow > 1;
+  // pump rotor, suction/pressure/return lines in the cut-away
+  const c = [-1.18, 1.74]; let r = "";
+  for (let i = 0; i < 5; i++) { const a = st.pump * 3 + i * 72 * D; r += `<line class="ln" x1="${X(c)}" y1="${Y(c)}" x2="${X([c[0] + Math.cos(a) * 0.16, 0])}" y2="${Y([0, c[1] + Math.sin(a) * 0.16])}"/>`; }
+  rotor.innerHTML = r + circ(c, 0.05, "steel");
+  gPipes.innerHTML = hoseSvg(SUCTION, "lp", st.phase, "s") + hoseSvg(PRESS, any ? "hp" : "lp", st.phase, "p") + hoseSvg(RETURN, "lp", st.phase, "r");
+  let sp = "";
+  ["boom", "arm", "bucket"].forEach((k, i) => { const y = 1.94 - i * 0.15; const x = -0.59 + st.spool[k] * 0.06; sp += path([[x - 0.09, y], [x + 0.09, y], [x + 0.09, y - 0.07], [x - 0.09, y - 0.07]], k === st.focus ? "rod" : "steel-dk"); });
+  spools.innerHTML = sp;
+  for (const k of Object.keys(CIRC)) { document.getElementById("lv-" + k).classList.toggle("on", k === st.focus); if (!held[k] && document.activeElement !== inputs[k] || touring) inputs[k].value = Math.round(st.lever[k] * 100); }
+  const k = st.focus, ci = CIRC[k], i = st.info[k] || {};
+  valveEl.innerHTML = valveSvg(k); cylEl.innerHTML = cylSvg(k);
+  document.getElementById("valveTitle").textContent = `コントロールバルブ（${ci.name}）`;
+  document.getElementById("cylTitle").textContent = `${ci.name}シリンダー断面`;
+  const act = i.relief ? "リリーフ作動" : i.moving > 0 ? ci.ext + (i.P > 15 && k !== "boom" ? "（土の抵抗）" : "") : i.moving < 0 ? ci.ret : "保持";
+  readout.innerHTML = `${ci.name} <b>${act}</b>　${(i.P || 0).toFixed(1).padStart(4, " ")} MPa　${(Math.abs(i.Fout || 0) / 1000).toFixed(0).padStart(3, " ")} kN　${(i.Q || 0).toFixed(0).padStart(3, " ")} L/min　${(Math.abs(i.vel || 0) * 1000).toFixed(0).padStart(3, " ")} mm/s`;
+  const b = CIRC.boom;
+  calcEl.innerHTML =
+    `<span class="k">ピストン面積</span>　π × (0.120 m ÷ 2)² ＝ ${(b.Ah * 1e4).toFixed(1)} cm² ×2本 ＝ ${(b.Ah * 2 * 1e4).toFixed(1)} cm²<br>` +
+    `<span class="k">最大の力　　</span>　${RELIEF} MPa × ${(b.Ah * 2).toFixed(4)} m² ＝ ${(RELIEF * b.Ah * 2 * 1000).toFixed(0)} kN（約${(RELIEF * 1e6 * b.Ah * 2 / G / 1000).toFixed(0)}トン分）<br>` +
+    `<span class="k">いまの姿勢　</span>　腕と土砂を支えるのに ${((st.info.boom?.F || 0) / 1000).toFixed(0)} kN 必要 → 保持圧 ${(Math.abs(st.info.boom?.F || 0) / (b.Ah * 2) / 1e6).toFixed(1)} MPa<br>` +
+    `<span class="k">上げる速さ　</span>　${b.q} L/min ÷ ${(b.Ah * 2 * 1e4).toFixed(0)} cm² ＝ ${(b.q / 60000 / (b.Ah * 2) * 1000).toFixed(0)} mm/s（ロッドが伸びる速さ）`;
+}
+
+let last = performance.now(), visible = true;
+new IntersectionObserver((es) => { visible = es[0].isIntersecting; }).observe(main);
+function tick(now) {
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;
+  if (visible) {
+    if (!touring && !Object.values(held).some(Boolean)) {
+      for (const k of Object.keys(CIRC)) st.lever[k] *= Math.exp(-dt * 10); // spring back to neutral
+      idleT += dt; if (idleT > 12 && !reduce) { touring = true; tourT = 0; tourBtn.setAttribute("aria-pressed", "true"); }
+    }
+    if (touring) {
+      const l = tourLevers(dt); Object.assign(st.lever, l);
+      const big = Object.entries(l).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0]; if (Math.abs(big[1]) > 0.3) st.focus = big[0];
+    }
+    step(dt); render();
+  }
+  requestAnimationFrame(tick);
+}
+step(0); render();
+if (reduce) tourBtn.setAttribute("aria-pressed", "false");
+requestAnimationFrame(tick);
+window.__exc = { st, pose, CIRC, cylLen, step, render, stop: stopTour };
+})();
+</script>
+
+</body></html>
