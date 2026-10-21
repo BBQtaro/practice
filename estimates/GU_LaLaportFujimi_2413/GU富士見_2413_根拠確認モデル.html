@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GU富士見 根拠確認モデル</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#ffffff;--ink:#1f2933;--sub:#5f6b7a;--line:#d9dee5;--accent:#c53030;--hi:#fff4c2}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15181d;--panel:#1e232a;--ink:#e6e9ee;--sub:#9aa5b1;--line:#2f3640;--accent:#fc8181;--hi:#3d3a22}}
+:root[data-theme="dark"]{--bg:#15181d;--panel:#1e232a;--ink:#e6e9ee;--sub:#9aa5b1;--line:#2f3640;--accent:#fc8181;--hi:#3d3a22}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;font-size:14px}
+header{padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{margin:0;font-size:18px}
+header p{margin:4px 0 0;color:var(--sub);font-size:12px}
+nav{display:flex;gap:4px;padding:8px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav button{border:1px solid var(--line);background:transparent;color:var(--ink);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px}
+nav button.on{background:var(--ink);color:var(--panel)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;padding:12px 16px}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;min-width:0}
+#view3d{height:62vh;min-height:360px;border-radius:6px;overflow:hidden;background:#dfe4ea}
+#svgwrap{overflow:auto}
+svg text{font-family:inherit}
+.toggles label{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:13px}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid #0003}
+#info{font-size:13px;line-height:1.6}
+#info .t{font-weight:700;font-size:15px;margin-bottom:4px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top}
+th{color:var(--sub);font-weight:600}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.sel{background:var(--hi)}
+.big{color:var(--accent);font-weight:700}
+.tab{display:none}.tab.on{display:block}
+.scroll{overflow-x:auto}
+small{color:var(--sub)}
+</style>
+</head>
+<body>
+<header>
+<h1>GU ららぽーと富士見店（2413区画）根拠確認モデル</h1>
+<p>施工図一式（A03 平面図・A04 床伏図・A05 天井伏図・A16〜A21 展開図・照明器具表）を通り芯基準で読み取った拾い出し。床・壁・柱をクリックすると数量と根拠が右に出ます。</p>
+</header>
+<nav>
+<button data-tab="t3d" class="on">3Dモデル</button>
+<button data-tab="tplan">平面（拾い範囲）</button>
+<button data-tab="tqty">数量・見積との比較</button>
+</nav>
+<main>
+<section class="card">
+  <div id="t3d" class="tab on"><div id="view3d"></div><small>ドラッグ：回転／ホイール：拡大縮小／右ドラッグ：移動。店頭（Y6側）が手前。</small></div>
+  <div id="tplan" class="tab"><div id="svgwrap"></div></div>
+  <div id="tqty" class="tab">
+    <h3>見積 v2 と図面拾いの比較</h3>
+    <div class="scroll"><table id="cmp"></table></div>
+    <h3>床（室別）</h3><div class="scroll"><table id="zt"></table></div>
+    <h3>壁（ID別）</h3><div class="scroll"><table id="wt"></table></div>
+    <h3>壁仕上げ（面別合計）</h3><div class="scroll"><table id="ft"></table></div>
+    <h3>器具・コンセント</h3><div class="scroll"><table id="xt"></table></div>
+  </div>
+</section>
+<aside class="card">
+  <div class="toggles" id="toggles"></div>
+  <hr style="border:none;border-top:1px solid var(--line)">
+  <div id="info"><div class="t">要素を選択してください</div><small>3D・平面・表のどれからでも選べます。</small></div>
+</aside>
+</main>
+<script>const D = {"zones": [{"id": "F1", "name": "売場", "finish": "ES3001-45 馬貼り FL+3", "color": "#7fb3e6", "pts": [[9000, 4600], [26500, 4600], [26500, 13000], [33600, 13000], [33600, 18700], [29700, 18700], [29700, 25200], [25200, 25200], [25200, 30100], [33700, 30100], [33700, 41500], [8900, 39000]], "area": 753.7, "official": 766.4}, {"id": "F2", "name": "レジ", "finish": "ES3001-45 馬貼り FL+3", "color": "#4f8fd1", "pts": [[26500, 4600], [33600, 4600], [33600, 13000], [26500, 13000]], "area": 59.6, "official": 66.8}, {"id": "F3", "name": "試着室", "finish": "ブース外 ES3001-45／ブース内 WBH-603", "color": "#f2b84b", "pts": [[19000, 600], [26500, 600], [26500, 4600], [16700, 4600], [16700, 3000], [19000, 3000]], "area": 33.7, "official": 36.0}, {"id": "F4", "name": "倉庫-1", "finish": "P-41 FL+2", "color": "#9aa5b1", "pts": [[357, -2300], [16700, -2300], [16700, 4600], [14790, 4600], [14790, 4510], [7757, 4510], [7757, 1673], [357, 1673]], "area": 90.5, "official": 94.4}, {"id": "F5", "name": "休憩室", "finish": "P-41 FL+2", "color": "#b7a58a", "pts": [[16700, -2300], [26500, -2300], [26500, 600], [19000, 600], [19000, 3000], [16700, 3000]], "area": 33.9, "official": 35.5}, {"id": "F6", "name": "店長室", "finish": "P-41 FL+2", "color": "#a58ab7", "pts": [[26500, -2300], [28300, -2300], [29900, 300], [29900, 2300], [26500, 2300]], "area": 13.6, "official": 9.5}, {"id": "F7", "name": "補正室", "finish": "P-41 FL+2", "color": "#8ab7a5", "pts": [[26500, 2300], [29900, 2300], [29900, 300], [33600, 4000], [33600, 4600], [26500, 4600]], "area": 16.9, "official": 15.8}, {"id": "F8", "name": "備品庫(倉庫-2)", "finish": "P-41 FL+2", "color": "#9aa5b1", "pts": [[29700, 18700], [32600, 18700], [32600, 25200], [29700, 25200]], "area": 18.9, "official": 17.9}, {"id": "F9", "name": "ショーウィンドウ", "finish": "P-41 FL+2", "color": "#d98fa0", "pts": [[14800, -3400], [26700, -3400], [29600, -2600], [34300, 3900], [33600, 4000], [29000, -1700], [26500, -2300], [14800, -2300]], "area": 22.2, "official": 21.6}], "excluded": [{"id": "X1", "name": "階段B-17（A工事・対象外）", "pts": [[25200, 25200], [33700, 25200], [33700, 30100], [25200, 30100]]}], "walls": [{"id": "W01", "name": "売場 左壁（X20側）", "length": 34.4, "height": 3750, "base": "LGS ST100 前出し", "finish": "AEP N-87 3分ツヤ（壁面什器背面）", "faces": 1, "area": 129.0, "color": "#2b6cb0", "ref": "展開3", "pts": [[9000, 4600], [9000, 39000]], "faces_detail": [["AEP N-87", 1]], "segment": false}, {"id": "W02", "name": "レジ 右壁（X17側）", "length": 14.1, "height": 3750, "base": "LGS ST100 前出し", "finish": "黒クロス LW-4207＋スリット", "faces": 1, "area": 52.9, "color": "#111111", "ref": "展開5'/7", "pts": [[33600, 4600], [33600, 18700]], "faces_detail": [["黒クロス LW-4207", 1]], "segment": false}, {"id": "W03", "name": "備品庫 北面", "length": 2.9, "height": 3750, "base": "LGS ST65 両面", "finish": "売場側 AEP N-87／室内 素地", "faces": 2, "area": 10.9, "color": "#2b6cb0", "ref": "展開12", "pts": [[32600, 18700], [29700, 18700]], "faces_detail": [["AEP N-87", 1], ["素地", 1]], "segment": false}, {"id": "W04", "name": "備品庫 西面", "length": 6.5, "height": 3750, "base": "LGS ST65 両面", "finish": "売場側 AEP N-87／室内 素地", "faces": 2, "area": 24.4, "color": "#2b6cb0", "ref": "展開12", "pts": [[29700, 18700], [29700, 25200]], "faces_detail": [["AEP N-87", 1], ["素地", 1]], "segment": false}, {"id": "W05", "name": "階段室 外周（A工事壁）", "length": 17.9, "height": 3750, "base": "A工事壁（C工事直接仕上げ）", "finish": "AEP N-87 3分ツヤ", "faces": 1, "area": 67.1, "color": "#6b7280", "ref": "展開11", "pts": [[29700, 25200], [25200, 25200], [25200, 30100], [33700, 30100]], "faces_detail": [["AEP N-87", 1]], "segment": false}, {"id": "W06", "name": "売場 右壁（階段下〜店頭）", "length": 11.4, "height": 3750, "base": "LGS ST100 前出し", "finish": "AEP N-87（壁面什器H3664背面）", "faces": 1, "area": 42.8, "color": "#2b6cb0", "ref": "展開13", "pts": [[33700, 30100], [33700, 41500]], "faces_detail": [["AEP N-87", 1]], "segment": false}, {"id": "W07", "name": "売場 奥壁（倉庫-1側）", "length": 7.7, "height": 3750, "base": "LGS ST65 両面", "finish": "売場側 AEP N-87／倉庫側 素地", "faces": 2, "area": 28.9, "color": "#2b6cb0", "ref": "展開4/42", "pts": [[9000, 4600], [16700, 4600]], "faces_detail": [["AEP N-87", 1], ["素地", 1]], "segment": false}, {"id": "W08", "name": "試着室 前面", "length": 9.8, "height": 3750, "base": "LGS ST65 両面", "finish": "売場側 AEP N-87／FR側 クロス LW-4635", "faces": 2, "area": 36.8, "color": "#c05621", "ref": "展開4/16", "pts": [[16700, 4600], [26500, 4600]], "faces_detail": [["AEP N-87", 1], ["白クロス LW-4630/4635", 1]], "segment": false}, {"id": "W09", "name": "レジ 背面壁（補正室側）", "length": 7.1, "height": 3750, "base": "LGS ST65 両面", "finish": "レジ側 黒クロス LW-4207／補正室側 AEP N-87", "faces": 2, "area": 26.6, "color": "#111111", "ref": "展開5'/24", "pts": [[26500, 4600], [33600, 4600]], "faces_detail": [["黒クロス LW-4207", 1], ["AEP N-87", 1]], "segment": false}, {"id": "W10", "name": "倉庫-1 区画境界壁", "length": 28.65, "height": 3750, "base": "LGS ST100 前出し", "finish": "素地仕上げ＋ワイド巾木H300", "faces": 1, "area": 107.4, "color": "#a0aec0", "ref": "展開38/40/42", "pts": [[7757, 4510], [7757, 1673], [357, 1673], [357, -2300], [14800, -2300]], "faces_detail": [["素地", 1]], "segment": false}, {"id": "W11", "name": "倉庫-1／休憩室 間仕切", "length": 6.9, "height": 3750, "base": "LGS ST65 両面", "finish": "倉庫側 素地／休憩室側 化粧PB（木目）", "faces": 2, "area": 25.9, "color": "#975a16", "ref": "展開36/43", "pts": [[16700, -2300], [16700, 4600]], "faces_detail": [["素地", 1], ["化粧PB（木目・桐）", 1]], "segment": false}, {"id": "W12", "name": "休憩室／試着室 間仕切", "length": 9.9, "height": 3750, "base": "LGS ST65 両面", "finish": "休憩室側 化粧PB／FR側 クロス LW-4630", "faces": 2, "area": 37.1, "color": "#975a16", "ref": "展開17/35", "pts": [[19000, 3000], [19000, 600], [26500, 600]], "faces_detail": [["化粧PB（木目・桐）", 1], ["白クロス LW-4630/4635", 1]], "segment": false}, {"id": "W13", "name": "休憩室・店長室／試着室・補正室 間仕切", "length": 6.9, "height": 3750, "base": "LGS ST65 両面", "finish": "化粧PB（タイガーハイクリン桐）／AEP N-87", "faces": 2, "area": 25.9, "color": "#975a16", "ref": "展開28〜31", "pts": [[26500, -2300], [26500, 4600]], "faces_detail": [["化粧PB（木目・桐）", 1], ["AEP N-87", 1]], "segment": false}, {"id": "W14", "name": "店長室／補正室 間仕切", "length": 5.4, "height": 3750, "base": "LGS ST65 両面", "finish": "化粧PB／AEP N-87", "faces": 2, "area": 20.2, "color": "#975a16", "ref": "展開25/30", "pts": [[26500, 2300], [29900, 2300], [29900, 300]], "faces_detail": [["化粧PB（木目・桐）", 1], ["AEP N-87", 1]], "segment": false}, {"id": "W15", "name": "ショーウィンドウ 背面壁", "length": 21.6, "height": 3155, "base": "LGS ST65 両面", "finish": "SW側 AEP N-87／室内側 素地・化粧PB", "faces": 2, "area": 68.1, "color": "#d53f8c", "ref": "展開44/45", "pts": [[14800, -2300], [26500, -2300], [29000, -1700], [33600, 4000]], "faces_detail": [["AEP N-87", 1], ["素地", 1]], "segment": false}, {"id": "W16", "name": "試着室 ブース間仕切（10室）", "length": 10.5, "height": 3750, "base": "LGS ST65 両面", "finish": "クロス LW-4635（両面）", "faces": 2, "area": 39.4, "color": "#c05621", "ref": "展開16〜19", "pts": [[19800, 600], [19800, 2700], [20600, 600], [20600, 2700], [21400, 600], [21400, 2700], [22200, 600], [22200, 2700], [23000, 600], [23000, 2700]], "faces_detail": [["白クロス LW-4630/4635", 2]], "segment": true}, {"id": "W17", "name": "店頭 下がり壁 H650", "length": 24.93, "height": 650, "base": "LGS＋PB", "finish": "AEP N-87 3分ツヤ（内外2面）", "faces": 2, "area": 16.2, "color": "#38a169", "ref": "展開1/2", "pts": [[8900, 39000], [33700, 41500]], "faces_detail": [["AEP N-87", 2]], "segment": false}], "columns": [{"name": "X19×Y2", "x": 17000, "y": 8500, "size": 1000}, {"name": "X18×Y2", "x": 25500, "y": 8500, "size": 1000}, {"name": "X19×Y3", "x": 17000, "y": 17000, "size": 1000}, {"name": "X18×Y3", "x": 25500, "y": 17000, "size": 1000}, {"name": "X19×Y4", "x": 17000, "y": 25500, "size": 1000}, {"name": "X19×Y5", "x": 17000, "y": 34000, "size": 1000}, {"name": "X18×Y5", "x": 25500, "y": 34000, "size": 1000}], "grid_x": {"X21": 0, "X20": 8500, "X19": 17000, "X18": 25500, "X17": 34000}, "grid_y": {"Y1": 0, "Y2": 8500, "Y3": 17000, "Y4": 25500, "Y5": 34000, "Y6": 42500}, "summary": {"LGS ST100（㎡）": 332.1, "LGS ST65 両面間仕切（㎡）": 344.2, "柱 LGS＋PB（㎡）": 105.0, "PB12.5（壁・柱・下がり壁, ㎡）": 1157.9, "A工事壁 直接仕上げ（㎡）": 67.1, "床 ES3001（売場＋レジ＋FRブース外, ㎡）": 854.8, "床 P-41（BOH＋SW, ㎡）": 194.7, "天井 AEP（全室, ㎡）": 1063.9, "柱巻きミラー（本 / 面）": "7 本 / 14 枚"}, "finish": {"AEP N-87": 555.1, "黒クロス LW-4207": 79.5, "素地": 265.6, "白クロス LW-4630/4635": 152.7, "化粧PB（木目・桐）": 109.1}, "fixtures": [{"name": "DL BD1〜BD6（55°/45°）", "qty": 262, "src": "照明器具表 A-xx：BD1 99・BD3 87・BD4 12・BD5 59・BD6 5"}, {"name": "ユニバーサルDL UD6〜UD8", "qty": 134, "src": "照明器具表：UD6 37・UD7 79・UD8 18"}, {"name": "ベースライト BL1/BL2", "qty": 13, "src": "照明器具表"}, {"name": "スポットライト SP1/SP2", "qty": 28, "src": "照明器具表"}, {"name": "ダブルコンセント", "qty": 41, "src": "照明器具表 コンセント欄／コンセント配置図"}, {"name": "抜け止め接地付ダブルコンセント", "qty": 42, "src": "同上"}, {"name": "天井裏ダブルコンセント", "qty": 4, "src": "同上"}, {"name": "POS/TEL/FAX アウトレット", "qty": 20, "src": "同上"}], "compare": [{"item": "LGS ST100 壁下地（㎡）", "est": 691, "drw": 332.1, "note": "実績は壁面什器背面・FR・レジバックの下地を含むとみられる。図面拾いは区画外周＋売場外周のみ"}, {"item": "LGS ST65 間仕切（㎡）", "est": 285, "drw": 344.2, "note": "図面拾いはSW背面・FRブース間仕切を含む"}, {"item": "柱 LGS＋PB（㎡）", "est": 156, "drw": 105.0, "note": "図面拾いは売場独立柱7本のみ（壁付柱を含めると増）"}, {"item": "PB12.5（壁・柱, ㎡）", "est": 1121, "drw": 1157.9, "note": "ほぼ一致"}, {"item": "天井 AEP（㎡）", "est": 1065, "drw": 1063.9, "note": "一致"}, {"item": "壁 AEP N-87（壁・柱・ファサード, ㎡）", "est": 768, "drw": 555.1, "note": "図面拾いは什器で隠れる面も全面計上。実績は塗装範囲を絞っている可能性"}, {"item": "白クロス（㎡）", "est": 131, "drw": 152.7, "note": "FRブース間仕切の両面分で図面拾いが多い"}, {"item": "黒クロス（㎡）", "est": 55, "drw": 79.5, "note": "実績は標準化項目「ベース壁面クロス55㎡」"}, {"item": "化粧PB 木目（㎡）", "est": 273, "drw": 109.1, "note": "図面拾いは間仕切のみ。休憩室・店長室の外周壁内面も化粧PBなら増 → 要確認"}, {"item": "床 ES3001 施工（㎡）", "est": 876, "drw": 854.8, "note": "ほぼ一致"}, {"item": "床 P-41 施工（㎡）", "est": 169, "drw": 194.7, "note": "図面ではSW 21.6㎡もP-41 → 見積に追加検討"}, {"item": "柱巻きミラー（枚）", "est": 14, "drw": 14, "note": "一致（独立柱7本×2面）"}, {"item": "ダウンライト 取付（ヶ所）", "est": 396, "drw": 396, "note": "照明器具表の総数量"}, {"item": "コンセント 取付（ヶ所）", "est": 87, "drw": 87, "note": "照明器具表の総数量"}]};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const fmt=n=>typeof n==="number"?n.toLocaleString("ja-JP",{maximumFractionDigits:1}):n;
+const show={zone:true,wall:true,column:true,excluded:true};
+let selected=null;
+// ---- 情報パネル
+function info(o){
+  selected=o.id;
+  const el=document.getElementById("info");
+  if(o.kind==="zone"){
+    el.innerHTML=`<div class="t">${o.id} ${o.name}</div>床仕上：${o.finish}<br>正式面積（平面図面積表）：<span class="big">${fmt(o.official)} ㎡</span><br>図上概算：${fmt(o.area)} ㎡（差 ${fmt(o.official?((o.area/o.official-1)*100):0)}%）<br><small>根拠：A04 床伏図・A03 面積表／積算根拠図 p.2</small>`;
+  }else if(o.kind==="wall"){
+    const f=o.faces_detail.map(([k,n])=>`${k} ×${n}面`).join("<br>");
+    el.innerHTML=`<div class="t">${o.id} ${o.name}</div>下地：${o.base}<br>長さ：<span class="big">${fmt(o.length)} m</span>　高さ：${fmt(o.height)} mm<br>面積（片面）：<span class="big">${fmt(o.area)} ㎡</span><br>仕上：<br>${f}<br><small>根拠：A03 平面図（長さ）・${o.ref}（仕上・高さ）／積算根拠図 p.3</small>`;
+  }else if(o.kind==="column"){
+    el.innerHTML=`<div class="t">柱 ${o.name}</div>柱巻きミラー 2面（W600×H1800）＋LGS・PB・AEP<br><small>根拠：A03 平面図・展開2/14／売場独立柱 7本</small>`;
+  }else{el.innerHTML=`<div class="t">${o.name}</div>A工事範囲のため計上しない`;}
+  document.querySelectorAll("tr[data-id]").forEach(r=>r.classList.toggle("sel",r.dataset.id===o.id));
+  highlight3d(o.id);
+}
+// ---- トグル
+const tg=document.getElementById("toggles");
+[["zone","床ゾーン"],["wall","壁"],["column","柱"],["excluded","対象外（階段室）"]].forEach(([k,l])=>{
+  const lab=document.createElement("label");
+  lab.innerHTML=`<input type="checkbox" checked> ${l}`;
+  lab.querySelector("input").onchange=e=>{show[k]=e.target.checked;apply3d();drawSVG();};
+  tg.appendChild(lab);
+});
+// ---- タブ
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.id===b.dataset.tab));
+  if(b.dataset.tab==="t3d")resize3d();
+});
+// ---- 表
+function table(id,head,rows){
+  const t=document.getElementById(id);
+  t.innerHTML="<tr>"+head.map(h=>`<th>${h}</th>`).join("")+"</tr>"+rows.map(r=>`<tr ${r.id?`data-id="${r.id}"`:""}>${r.cells.map((c,i)=>`<td class="${typeof c==="number"?"n":""}">${fmt(c)}</td>`).join("")}</tr>`).join("");
+}
+table("cmp",["項目","見積v2（実績数量）","図面拾い","差","メモ"],D.compare.map(c=>({cells:[c.item,c.est,c.drw,(c.est?((c.drw/c.est-1)*100).toFixed(0)+"%":"-"),c.note]})));
+table("zt",["ID","室名","床仕上","正式㎡","図上㎡"],D.zones.map(z=>({id:z.id,cells:[z.id,z.name,z.finish,z.official,z.area]})));
+table("wt",["ID","名称","下地","長さm","高さmm","片面㎡","参照"],D.walls.map(w=>({id:w.id,cells:[w.id,w.name,w.base,w.length,w.height,w.area,w.ref]})));
+table("ft",["仕上","面積㎡"],Object.entries(D.finish).map(([k,v])=>({cells:[k,v]})));
+table("xt",["品目","数量","根拠"],D.fixtures.map(f=>({cells:[f.name,f.qty,f.src]})));
+document.querySelectorAll("tr[data-id]").forEach(r=>r.onclick=()=>{
+  const id=r.dataset.id;const o=D.zones.find(z=>z.id===id)?{...D.zones.find(z=>z.id===id),kind:"zone"}:{...D.walls.find(w=>w.id===id),kind:"wall"};info(o);
+});
+// ---- 平面 SVG
+function drawSVG(){
+  const minX=-2000,minY=-5000,W=38000,H=48000,sc=0.02;
+  let s=`<svg viewBox="${minX} ${minY} ${W} ${H}" width="${W*sc}" style="max-width:100%;height:auto;background:#fff">`;
+  for(const[k,v]of Object.entries(D.grid_x))s+=`<line x1="${v}" y1="${minY}" x2="${v}" y2="${minY+H}" stroke="#bbb" stroke-dasharray="400 200" stroke-width="30"/><text x="${v}" y="${minY+900}" font-size="700" text-anchor="middle" fill="#666">${k}</text>`;
+  for(const[k,v]of Object.entries(D.grid_y))s+=`<line x1="${minX}" y1="${v}" x2="${minX+W}" y2="${v}" stroke="#bbb" stroke-dasharray="400 200" stroke-width="30"/><text x="${minX+300}" y="${v-150}" font-size="700" fill="#666">${k}</text>`;
+  if(show.zone)D.zones.forEach(z=>{s+=`<polygon data-k="zone" data-id="${z.id}" points="${z.pts.map(p=>p.join(",")).join(" ")}" fill="${z.color}" fill-opacity="${selected===z.id?0.75:0.4}" stroke="${z.color}" stroke-width="60" style="cursor:pointer"/>`;
+    const LP={F1:[17500,22000],F2:[30000,9000],F8:[31200,22000]};const cx=LP[z.id]?LP[z.id][0]:z.pts.reduce((a,p)=>a+p[0],0)/z.pts.length,cy=LP[z.id]?LP[z.id][1]:z.pts.reduce((a,p)=>a+p[1],0)/z.pts.length;
+    s+=`<text x="${cx}" y="${cy}" font-size="650" text-anchor="middle" fill="#222" pointer-events="none">${z.id} ${z.name} ${z.official}㎡</text>`;});
+  if(show.excluded)D.excluded.forEach(e=>s+=`<polygon points="${e.pts.map(p=>p.join(",")).join(" ")}" fill="#777" fill-opacity=".45"/>`);
+  if(show.wall)D.walls.forEach(w=>{
+    const segs=w.segment?w.pts.reduce((a,p,i)=>i%2?a:[...a,[p,w.pts[i+1]]],[]):[w.pts];
+    segs.forEach(seg=>s+=`<polyline data-k="wall" data-id="${w.id}" points="${seg.map(p=>p.join(",")).join(" ")}" fill="none" stroke="${w.color}" stroke-width="${selected===w.id?420:250}" stroke-linecap="square" style="cursor:pointer"/>`);
+    const p=w.pts[Math.floor(w.pts.length/2)];s+=`<text x="${p[0]+250}" y="${p[1]+250}" font-size="560" fill="#c53030" pointer-events="none">${w.id}</text>`;});
+  if(show.column)D.columns.forEach(c=>s+=`<rect data-k="column" data-id="${c.name}" x="${c.x-c.size/2}" y="${c.y-c.size/2}" width="${c.size}" height="${c.size}" fill="#38a169" style="cursor:pointer"/>`);
+  s+=`<text x="${minX+500}" y="${minY+H-500}" font-size="800" fill="#444">店頭（Y6側）↓　1/200 図面を通り芯基準で読み取り</text></svg>`;
+  const wrap=document.getElementById("svgwrap");wrap.innerHTML=s;
+  wrap.querySelectorAll("[data-k]").forEach(el=>el.onclick=()=>{const k=el.dataset.k,id=el.dataset.id;
+    if(k==="zone")info({...D.zones.find(z=>z.id===id),kind:"zone"});
+    else if(k==="wall")info({...D.walls.find(w=>w.id===id),kind:"wall"});
+    else info({kind:"column",name:id,id});drawSVG();});
+}
+drawSVG();
+// ---- 3D
+let scene,cam,ren,ctl,meshes=[];
+function init3d(){
+  if(typeof THREE==="undefined"){document.getElementById("view3d").innerHTML='<p style="padding:16px">3D表示用のライブラリを読み込めませんでした（オフライン？）。平面タブと数量タブは使えます。</p>';return;}
+  const el=document.getElementById("view3d");
+  scene=new THREE.Scene();scene.background=new THREE.Color(0xdfe4ea);
+  cam=new THREE.PerspectiveCamera(45,el.clientWidth/el.clientHeight,10,500000);
+  cam.position.set(17000,-80000,38000);
+  ren=new THREE.WebGLRenderer({antialias:true});ren.setPixelRatio(window.devicePixelRatio);el.appendChild(ren.domElement);
+  ctl=new THREE.OrbitControls(cam,ren.domElement);ctl.target.set(17000,-19000,0);
+  scene.add(new THREE.AmbientLight(0xffffff,.65));const dl=new THREE.DirectionalLight(0xffffff,.6);dl.position.set(20000,-60000,80000);scene.add(dl);
+  // 座標: x=右, y=-(図面y)（店頭が手前）, z=高さ
+  const T=(p)=>new THREE.Vector2(p[0],-p[1]);
+  D.zones.forEach(z=>{const sh=new THREE.Shape(z.pts.map(T));const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),new THREE.MeshLambertMaterial({color:z.color,side:THREE.DoubleSide,transparent:true,opacity:.85}));m.userData={kind:"zone",...z};meshes.push(m);scene.add(m);});
+  D.excluded.forEach(e=>{const m=new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(e.pts.map(T))),new THREE.MeshLambertMaterial({color:0x777777}));m.position.z=5;m.userData={kind:"excluded",...e};meshes.push(m);scene.add(m);});
+  D.walls.forEach(w=>{
+    const segs=w.segment?w.pts.reduce((a,p,i)=>i%2?a:[...a,[p,w.pts[i+1]]],[]):w.pts.slice(1).map((p,i)=>[w.pts[i],p]);
+    const z0=w.id==="W17"?3750-650:0;
+    segs.forEach(([a,b])=>{const dx=b[0]-a[0],dy=-(b[1]-a[1]),L=Math.hypot(dx,dy);
+      const m=new THREE.Mesh(new THREE.BoxGeometry(L,150,w.height),new THREE.MeshLambertMaterial({color:w.color,transparent:true,opacity:.92}));
+      m.position.set((a[0]+b[0])/2,-(a[1]+b[1])/2,z0+w.height/2);m.rotation.z=Math.atan2(dy,dx);m.userData={kind:"wall",...w};meshes.push(m);scene.add(m);});
+  });
+  D.columns.forEach(c=>{const m=new THREE.Mesh(new THREE.BoxGeometry(c.size,c.size,3750),new THREE.MeshLambertMaterial({color:0x38a169}));m.position.set(c.x,-c.y,1875);m.userData={kind:"column",name:c.name,id:c.name};meshes.push(m);scene.add(m);});
+  const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
+  ren.domElement.addEventListener("click",e=>{const r=ren.domElement.getBoundingClientRect();mv.x=((e.clientX-r.left)/r.width)*2-1;mv.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(mv,cam);
+    const hit=ray.intersectObjects(meshes.filter(m=>m.visible))[0];if(hit)info(hit.object.userData);});
+  resize3d();apply3d();(function loop(){requestAnimationFrame(loop);ctl.update();ren.render(scene,cam);})();
+}
+function resize3d(){if(!ren)return;const el=document.getElementById("view3d");cam.aspect=el.clientWidth/el.clientHeight;cam.updateProjectionMatrix();ren.setSize(el.clientWidth,el.clientHeight);}
+function apply3d(){meshes.forEach(m=>m.visible=!!show[m.userData.kind]);}
+function highlight3d(id){meshes.forEach(m=>{if(m.material&&m.material.emissive)m.material.emissive.setHex((m.userData.id===id)?0x553300:0x000000);});}
+window.addEventListener("resize",resize3d);
+window.addEventListener("load",init3d);
+</script>
+</body>
+</html>
