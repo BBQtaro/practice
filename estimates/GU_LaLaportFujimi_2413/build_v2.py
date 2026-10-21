@@ -555,7 +555,6 @@ for sec, rows in ITEMS:
             ws.cell(row=r, column=col).number_format = YEN
         r += 1
 ws.freeze_panes = "C5"
-ws.auto_filter.ref = f"A4:H{r-1}"
 a4(ws, True)
 
 ws2 = wb.create_sheet("面積・台数の基本数量")
