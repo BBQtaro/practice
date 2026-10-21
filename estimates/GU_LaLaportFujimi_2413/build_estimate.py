@@ -629,5 +629,104 @@ ws_w.page_setup.paperSize = ws_w.PAPERSIZE_A4
 ws_w.sheet_properties.pageSetUpPr.fitToPage = True
 ws_w.page_setup.fitToHeight = 1
 
+# ===== 答え合わせ（実物件 2021/01/06 見積との比較）=====
+ACTUAL = [  # (実績の工種, 実績 売価, 差の主な原因)
+    ("仮設工事", 3071500, "ほぼ同水準。実績は足場（フリーダムステージ10台）・搬出入路養生・産廃が中心"),
+    ("軽鉄・ボード工事", 6543470, "数量は実績の方が多い（LGS 976㎡＋柱156㎡、PB 1,238㎡）。単価が高すぎ（LGS 4,200→1,830〜2,000円、PB 1,600→1,240円）。BOH天井LGS＋化粧ボードは誤り：GB-DはBOHの壁仕上げで、天井はA工事PBへのAEP"),
+    ("床タイル工事", 1982450, "最大の差。塩ビタイルはGU支給品で施工費のみ（1,050円/㎡）。材工共4,800円で計上していた"),
+    ("塗装工事", 3070650, "実績は天井AEPを区画全面1,065㎡（BOH含む）、寒冷紗パテ込み1,600円/㎡"),
+    ("内装仕上げ工事", 1215540, "巾木・クロス・ドットシールは近い。BOHクロス（白194㎡・木目273㎡）を拾い漏れ"),
+    ("金物工事", 2440180, "コーナーガード67本（約74万円）、シャッター塞ぎパネル、メタカラー巾木などを拾い漏れ"),
+    ("木工造作工事", 553400, "過大計上。レジバック・FR・ストック棚・休憩室流し台・店長室収納などの大型造作は支給品か対象外。実績は棚板・フック・下地程度"),
+    ("建具工事", 1159000, "単価がやや高い。ポリ合板扉 1組約11万円"),
+    ("ガラス工事", 1036400, "柱巻ミラーを高く見すぎ（1本28万円→実績はミラー2枚で約2.2万円/面）"),
+    ("サイン工事", 505650, "サインはほぼ支給品で取付のみ"),
+    ("照明・電気工事", 4749500, "最大の差。照明器具はGU支給（シマダ手配）で、取付・配線のみ（DL 4,500円/ヶ所）。分電盤は50万円/面。音響は計上なし"),
+    ("特殊項目", 120000, "カウンター類はすべて支給品"),
+    ("標準化項目（FR三方枠・壁面スリット・LEDサイン・誘導サイン・アルミシート等）", 10909580 - 4630000, "GU標準仕様の追加分。FR三方枠（オーク無垢）、壁面スリット造作、キャッシャーLEDサイン、通路誘導サインなど"),
+    ("夜間工事費（夜間割増＋夜間警備）", 4630000, "ほぼ一致。実績は7,500円/人工×約444人工＋夜間警備3万円×36日"),
+    ("諸経費（現場管理・監理・図面）", 4412000, "共通費率が高すぎ。実績は現場管理259万円＋監理60万円＋会社経費65万円など（直接工事費の約12%）"),
+    ("付帯工事（指定産廃・揚重・駐車場）", 1000000, "計上漏れ。館指定の産廃・特殊揚重・作業員駐車場"),
+    ("端数調整", -9320, ""),
+]
+MAP = {"01": 0, "02": 0, "03": 1, "04": 1, "05": 2, "06": 3, "07": 4, "08": 7, "09": 5,
+       "10": 6, "11": 8, "12": 9, "13": 10}
+mine = [0] * len(ACTUAL)
+for sec, rows in ITEMS:
+    for name, spec, q, u, p, note in rows:
+        k = MAP[sec[:2]]
+        if "巾木" in name or "ドットシール" in name or "イエローテープ" in name or "ロールスクリーン" in name:
+            k = 4
+        elif "タペストリー" in name:
+            k = 5
+        mine[k] += round(q * p)
+direct = sum(mine)
+night = round(direct * 0.08, -3)
+kyotsu = round(direct * 0.03, -3)
+genba = round(direct * 0.08, -3)
+ippan = round((direct + night + kyotsu + genba) * 0.07, -3)
+mine[13] = night
+mine[14] = kyotsu + genba + ippan
+total_mine = sum(mine)
+mine[16] = -(total_mine % 10000)
+
+ws_a = wb.create_sheet("答え合わせ", 1)
+ws_a["A1"] = "答え合わせ：今回の積算 vs 実物件見積（2021/01/06 税抜 42,760,000円）"
+ws_a["A1"].font = f(14, True)
+ws_a["A2"] = "※実績はコロナ期の単価で、数量の精度も不明。工種の分け方は実績の見積書に合わせて今回分を組み替えた。"
+ws_a["A2"].font = f(9)
+heads = ["工種（実績の区分）", "今回の積算", "実績", "差額（今回−実績）", "倍率", "差の主な原因"]
+for i, (h, w) in enumerate(zip(heads, [40, 14, 14, 15, 7, 80]), 1):
+    c = ws_a.cell(row=4, column=i, value=h)
+    c.font = f(10, True); c.fill = HEAD_FILL; c.border = BORDER
+    c.alignment = Alignment(horizontal="center", wrap_text=True)
+    ws_a.column_dimensions[get_column_letter(i)].width = w
+for k, (cat, act, why) in enumerate(ACTUAL):
+    rr = 5 + k
+    vals = [cat, mine[k], act, f"=B{rr}-C{rr}", f'=IF(C{rr}<=0,"",B{rr}/C{rr})', why]
+    for col, v in enumerate(vals, 1):
+        c = ws_a.cell(row=rr, column=col, value=v)
+        c.font = f(9); c.border = BORDER
+        c.alignment = Alignment(vertical="center", wrap_text=col in (1, 6))
+    for col in (2, 3, 4):
+        ws_a.cell(row=rr, column=col).number_format = YEN
+    ws_a.cell(row=rr, column=5).number_format = "0.00"
+    if isinstance(act, int) and act > 0 and (mine[k] / act > 1.5 or mine[k] / act < 0.6):
+        ws_a.cell(row=rr, column=4).font = f(9, True, "C00000")
+tr = 5 + len(ACTUAL)
+ws_a.cell(row=tr, column=1, value="合計（税抜）").font = f(10, True)
+for col, L in ((2, "B"), (3, "C"), (4, "D")):
+    c = ws_a.cell(row=tr, column=col, value=f"=SUM({L}5:{L}{tr-1})")
+    c.number_format = YEN; c.font = f(10, True); c.border = BORDER
+ws_a.cell(row=tr, column=5, value=f"=B{tr}/C{tr}").number_format = "0.00"
+ws_a.cell(row=tr + 1, column=1, value="㎡単価（1,064㎡）").font = f(9)
+ws_a.cell(row=tr + 1, column=2, value=f"=ROUND(B{tr}/{AREA_TOTAL},0)").number_format = YEN
+ws_a.cell(row=tr + 1, column=3, value=f"=ROUND(C{tr}/{AREA_TOTAL},0)").number_format = YEN
+
+LESSONS = [
+    "【支給品】GU物件は照明器具・床塩ビタイル材・レジ／サービスカウンター・LEDサイン・壁面什器がGU支給。材料費を入れず「取付・施工費のみ」で拾う（照明器具材料 約1,500万円＋床タイル材料 約390万円＝約1,900万円がこれ）。",
+    "【造作】レジバック・FR・ストック棚などの大型造作は計上しない。FRはGU標準の三方枠＋カーテン（標準化項目）で拾う。",
+    "【拾い漏れ】コーナーガード（16角St 約1.1万円/本）、BOHクロス、館指定の産廃・揚重・駐車場（付帯）、夜間警備（3万円/日）。",
+    "【仕上げの読み違い】化粧石膏ボードGB-DはBOH壁の仕上げ。天井は全面AEP塗装（A工事PB面）で、C工事の天井下地はない。",
+    "【単価の目安（2021年実績・売価）】LGS 1,830〜2,000円/㎡、PB12.5 1,240円/㎡、AEP 1,600円/㎡（寒冷紗パテ込）、床タイル施工 1,050円/㎡、DL取付配線 4,500円/ヶ所、コンセント 4,500円/ヶ所、分電盤 50万円/面、夜間割増 7,500円/人工。",
+    "【共通費】夜間割増は実績とほぼ一致。諸経費は直接工事費の約12%（今回は約19%で過大）。",
+    "【2026年の補正】2021年から労務・資材は概ね2〜3割上がっている。実績の構成のまま単価を1.2〜1.3倍にすると約5,100万〜5,600万円（税抜）が今回の妥当なレンジの目安。",
+    "【工期】実績は2021/2/15〜4/22（40夜＋前日引渡し2日、夜間警備36日）。今回の40夜の工程と合っている。",
+    "【追加工事】2021/4/21 照明器具交換（DL案）83,000円の追加見積あり（器具は支給、撤去5台・取付7台）。",
+]
+rr = tr + 3
+ws_a.cell(row=rr, column=1, value="次回の積算に反映すること").font = f(11, True)
+for s in LESSONS:
+    rr += 1
+    ws_a.merge_cells(start_row=rr, start_column=1, end_row=rr, end_column=6)
+    c = ws_a.cell(row=rr, column=1, value=s)
+    c.font = f(9); c.alignment = Alignment(wrap_text=True, vertical="top")
+    ws_a.row_dimensions[rr].height = 28
+ws_a.freeze_panes = "B5"
+ws_a.page_setup.orientation = "landscape"
+ws_a.page_setup.paperSize = ws_a.PAPERSIZE_A4
+ws_a.sheet_properties.pageSetUpPr.fitToPage = True
+ws_a.page_setup.fitToHeight = 0
+
 wb.save(OUT)
 print("saved", OUT)
